@@ -9,6 +9,8 @@ This plugin don't take care of user responses and its stats.
 
 Get it at [Chrome Web Store](https://chrome.google.com/webstore/detail/medium-enhanced-stats/jnomnfoenpdinfkpaaigokicgcfkomjo)
 
+# Plugin previews
+
 Updated popup:
 
 ![Medium Enhanced Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_4.png)
