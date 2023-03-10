@@ -5,6 +5,8 @@ Enhancements for your Medium stats page! Get insight into summary of your total 
 
 This plugin don't take care of user responses and its stats.
 
+More info in [intro article on medium](https://medium.com/@jakubjirak/medium-enhanced-stats-tags-a58da6d0480).
+
 # Original Plugin
 
 Get it at [Chrome Web Store](https://chrome.google.com/webstore/detail/medium-enhanced-stats/jnomnfoenpdinfkpaaigokicgcfkomjo)
