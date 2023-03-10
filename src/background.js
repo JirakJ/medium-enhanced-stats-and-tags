@@ -21,16 +21,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true; // enable async sendResponse
 });
 
-chrome.runtime.onInstalled.addListener((details) => {
-  if (['install', 'update'].includes(details.reason)) {
-    const feedbackFormId =
-      '1FAIpQLSdItN10f-8zD6amnFu-WfjTB8rq_ACeHW3r-WRse0N620-UNQ';
-    const feedbackFormUrl = `https://docs.google.com/forms/d/e/${feedbackFormId}/viewform`;
-    if (chrome.runtime.setUninstallURL) {
-      chrome.runtime.setUninstallURL(feedbackFormUrl);
-    }
-  }
-});
+// chrome.runtime.onInstalled.addListener((details) => {
+//   if (['install', 'update'].includes(details.reason)) {
+//     const feedbackFormId =
+//       '1FAIpQLSdItN10f-8zD6amnFu-WfjTB8rq_ACeHW3r-WRse0N620-UNQ';
+//     const feedbackFormUrl = `https://docs.google.com/forms/d/e/${feedbackFormId}/viewform`;
+//     if (chrome.runtime.setUninstallURL) {
+//       chrome.runtime.setUninstallURL(feedbackFormUrl);
+//     }
+//   }
+// });
 
 function getTotals(url, payload) {
   let finalUrl = `${API_URL}${url}?limit=1000`;
