@@ -134,13 +134,11 @@ function loadPostStats(postId) {
   );
 }
 
-function loadPostStatsToday(postId) {
-  log('load post stats today');
+function loadPostStatsDetails(postId) {
+  log('load post stats details');
   return new Promise((resolve) =>
-    chrome.runtime.sendMessage(
-      { type: 'GET_POST_STATS_TODAY', postId },
-      {},
-      (data) => resolve(data)
+    chrome.runtime.sendMessage({ type: 'GET_POST_STATS_DETAIL', postId }, {}, (data) =>
+      resolve(data)
     )
   );
 }
@@ -248,6 +246,14 @@ function updateBarChart(data) {
   });
 }
 
+function getTagName(str) {
+  const arr = str.split("-");
+  for (var i = 0; i < arr.length; i++) {
+    arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+  }
+  return arr.join(" ");
+}
+
 function updateTableSummary(data) {
   const {
     items,
@@ -295,13 +301,13 @@ function updateTableSummary(data) {
                 <span class="fans-per-reads-ratio" title="Fans per Reads Ratio">${fansPerReadsRatio}%</span>
             </span>
         </td>
-        <td class="today" title="Today"></td>
+        <td class="wordsCount" title="Words Count"></td>
       </tr>
     `;
 }
 
 function updateTableRows(data) {
-  const todayTotals = { views: 0, reads: 0, fans: 0, claps: 0 };
+  // const todayTotals = { views: 0, reads: 0, fans: 0, claps: 0 };
   const fansHeadCell = document.querySelector(
     'table thead th:nth-child(5) button'
   );
@@ -309,14 +315,14 @@ function updateTableRows(data) {
   fansHeadCell.title = 'Fans, Claps and Claps per Fan';
 
   let tableHeadRow = document.querySelector('table thead tr');
-  let viewsReadsTodayHeadCell = tableHeadRow.querySelector('.today');
-  if (!viewsReadsTodayHeadCell) {
-    viewsReadsTodayHeadCell = document.createElement('th');
-    viewsReadsTodayHeadCell.className = 'sortableTable-header today';
-    viewsReadsTodayHeadCell.innerHTML = `<button class="button button--chromeless u-baseColor--buttonNormal js-views" data-action="sort-table" data-action-value="read_today<" data-label="Sort by">Today</button><span class="svgIcon svgIcon--sortAscending svgIcon--19px"><svg class="svgIcon-use" width="19" height="19"><path d="M5.4 11L4 9.667l5.517-6.11L15 9.597 13.6 11 9.5 6.8 5.4 11z"></path><path d="M8.5 15.4h2v-9h-2z" fill-rule="evenodd"></path></svg></span><span class="svgIcon svgIcon--sortDescending svgIcon--19px"><svg class="svgIcon-use" width="19" height="19"><path d="M5.4 8.4L4 9.733l5.517 6.11L15 9.803 13.6 8.4l-4.1 4.2-4.1-4.2z"></path><path d="M8.5 4h2v9h-2z" fill-rule="evenodd"></path></svg></span>`;
-    tableHeadRow.appendChild(viewsReadsTodayHeadCell);
-  }
 
+  let wordsCountHeadCell = tableHeadRow.querySelector('.wordsCount');
+  if (!wordsCountHeadCell) {
+    wordsCountHeadCell = document.createElement('th');
+    wordsCountHeadCell.className = 'sortableTable-header disabled wordsCount';
+    wordsCountHeadCell.innerHTML = `<button class="button button--chromeless u-baseColor--buttonNormal js-views">Words Count</button>`;
+    tableHeadRow.appendChild(wordsCountHeadCell);
+  }
   const rows = document.querySelectorAll('table tbody tr');
   Array.from(rows)
     .filter((row) => row.getAttribute('data-action-value'))
@@ -328,6 +334,7 @@ function updateTableRows(data) {
       );
       const articleTitle = row.querySelector('.sortableTable-title');
       articleTitle.title = new Date(post.firstPublishedAt).toLocaleDateString();
+
       let claps = fansCell.querySelector('.claps');
       if (!claps) {
         claps = document.createElement('span');
@@ -351,43 +358,15 @@ function updateTableRows(data) {
           <span class="claps-per-views-ratio" title="Claps per Views Ratio">${clapsPerViewsRatio}%</span>
           <span class="fans-per-reads-ratio" title="Fans Per Reads Ratio">${fansPerReadsRatio}%</span>
         `;
-
-        loadPostStatsToday(post.postId).then((todayPostStats) => {
-          const todayValues = Object.values(todayPostStats || {})[0] || {};
-          let todayCell = row.querySelector('.today');
-          if (!todayCell) {
-            todayCell = document.createElement('td');
-            todayCell.className = 'today';
-            row.appendChild(todayCell);
-          }
-          todayCell.innerHTML = `
-            <span class="sortableTable-value">${todayValues.views || 0}</span>
-            <div title="Views">👁️ ${formatValue(todayValues.views || 0)}</div>
-            <div title="Reads">📖 ${formatValue(todayValues.reads || 0)}</div>
-            <div title="Fans">👥 ${formatValue(todayValues.fans || 0)}</div>
-            <div title="Claps">👏 ${formatValue(todayValues.claps || 0)}</div>
-          `;
-          todayTotals.views += todayValues.views || 0;
-          todayTotals.reads += todayValues.reads || 0;
-          todayTotals.claps += todayValues.claps || 0;
-          todayTotals.fans += todayValues.fans || 0;
-          const todayTotalsCell = document.querySelector(
-            'table tfoot tr .today'
-          );
-          todayTotalsCell.innerHTML = `
-            <div title="Views">👁️ ${formatValue(todayTotals.views || 0)}</div>
-            <div title="Reads">📖 ${formatValue(todayTotals.reads || 0)}</div>
-            <div title="Fans">👥 ${formatValue(todayTotals.fans || 0)}</div>
-            <div title="Claps">👏 ${formatValue(todayTotals.claps || 0)}</div>
-          `;
-        });
       }
+
       const postTitleCell = row.querySelector('td:first-child');
       const postTitleCellActions = postTitleCell.querySelector(
         '.sortableTable-text'
       );
+
       if (postTitleCellActions.children.length <= 4) {
-        postTitleCellActions.innerHTML += '<span class="middotDivider"></span>';
+        postTitleCellActions.innerHTML += '<br />'
         postTitleCell.addEventListener('click', () => {
           scrollToBarChart();
           cleanBarChartExtras();
@@ -405,23 +384,29 @@ function updateTableRows(data) {
               barChartRefreshTrigger.next();
             });
         });
-        const showPostChartInAction = document.createElement('button');
-        showPostChartInAction.textContent = 'Show in chart';
-        showPostChartInAction.className = 'mes-action-show-in-chart';
-        showPostChartInAction.addEventListener('click', (event) => {
-          event.stopPropagation();
-          deselectActivePost();
-          scrollToBarChart();
-          cleanBarChartPostBars();
-          Promise.resolve()
-            .then(() => barChartPostsStats[postId] || loadPostStats(postId))
-            .then((postStats) => {
-              barChartPostsStats.id = postId;
-              barChartPostsStats[postId] = postStats;
-              barChartRefreshTrigger.next();
-            });
-        });
-        postTitleCellActions.appendChild(showPostChartInAction);
+        loadPostStatsDetails(post.postId).then(data => {
+          data.tags.map((tag, index) => {
+            if(index>0){
+              postTitleCellActions.innerHTML += '<span class="middotDivider"></span>';
+            }
+            const showTagInAction = document.createElement('a');
+            const name = getTagName(tag)
+            showTagInAction.textContent = name;
+            showTagInAction.href = `https://medium.com/tag/${tag}`;
+            showTagInAction.target= "_blank";
+            showTagInAction.className = 'mes-tag';
+            postTitleCellActions.appendChild(showTagInAction);
+          })
+
+          let wordsCountCell = row.querySelector('.wordsCount');
+          if (!wordsCountCell) {
+            wordsCountCell = document.createElement('td');
+            wordsCountCell.className = 'wordsCount';
+            wordsCountCell.textContent = Math.ceil(Number(data.readingTime) * 280);
+            row.appendChild(wordsCountCell);
+          }
+
+        })
       }
     });
 }
@@ -487,5 +472,5 @@ function generateDateIds() {
 }
 
 function log(...args) {
-  console.log('Medium Enhanced Stats [stats] -', ...args);
+  console.log('Medium Enhanced Stats & Tags [stats] -', ...args);
 }
