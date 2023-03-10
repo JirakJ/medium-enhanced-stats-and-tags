@@ -20,6 +20,22 @@ table th.today {
   text-align: center;
 }
 
+table th.readTime {
+  text-align: center;
+}
+
+table th.wordsCount {
+  text-align: center;
+}
+
+table td.readTime {
+  text-align: right;
+}
+
+table td.wordsCount {
+  text-align: right;
+}
+
 table .claps .claps-per-fan {
   position: absolute;
   top: 28px;
@@ -170,7 +186,7 @@ tfoot td .syndicated-views {
   }
 }
 
-.mes-action-show-in-chart {
+.mes-tag {
   color: rgba(0, 0, 0, 0.54) !important;
   width: auto !important;
   padding: 0 !important;
@@ -178,10 +194,10 @@ tfoot td .syndicated-views {
   font-weight: normal !important;
 }
 
-.mes-action-show-in-chart:hover {
+.mes-tag:hover {
   text-decoration: underline;
 }
 
 .mes-post-bar {
-  fill: rgba(3, 159, 118, 0.9) !important;
+  fill: rgb(0, 72, 255) !important;
 }
