@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // });
 
 function getTotals(url, payload) {
-  let finalUrl = `${API_URL}${url}?limit=1000`;
+  let finalUrl = `${API_URL}${url}?limit=50`;
   if (!payload) {
     return request(finalUrl).then((res) => getTotals(url, res));
   }
