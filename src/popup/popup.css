@@ -3,8 +3,8 @@
     --color-white: #fff;
     --color-grey-lighter: #eee;
     --color-grey: #aaa;
-    --color-brand: #03a87c;
-    --color-brand-darker: #019b72;
+    --color-brand: #0048ff;
+    --color-brand-darker: #0012ff;
 }
 
 html {
@@ -141,6 +141,15 @@ a {
 
 a:hover {
     color: var(--color-brand-darker);
+}
+
+a.trajan {
+    color: #03a87c;
+    text-decoration: none;
+}
+
+a.trajan:hover {
+    color: #019b72;
 }
 
 .actions {
