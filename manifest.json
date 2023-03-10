@@ -1,9 +1,9 @@
 {
-  "name": "Medium Enhanced Stats",
-  "version": "7.0.1",
-  "description": "Your total reach & summary of your articles and responses stats with a single click and many improvements of the Medium stats page!",
+  "name": "Medium Enhanced Stats & Tags",
+  "version": "1.0.2",
+  "description": "Medium Enchanted Stats on steroids...little adjustments and focus on improve Tag searching.",
   "manifest_version": 3,
-  "author": "Tomas Trajan <@tomastrajan>",
+  "author": "Jakub Jirák <jakub@jakubjirak.com>",
   "permissions": [
     "storage"
   ],
@@ -24,13 +24,13 @@
       "css": [
         "src/stats/stats-total.css",
         "src/partner/partner.css",
-        "src/notifications/notifications.css"
+        "src/tag/tag.css"
       ],
       "js": [
         "src/libs/rxjs.js",
         "src/stats/stats-total.js",
         "src/partner/partner.js",
-        "src/notifications/notifications.js"
+        "src/tag/tag.js"
       ]
     }
   ],
@@ -38,7 +38,7 @@
     "128": "src/images/icon-128.png"
   },
   "action": {
-    "default_title": "Medium Enhanced Stats",
+    "default_title": "Medium Enhanced Stats & Tags",
     "default_popup": "src/popup/popup.html"
   }
 }
