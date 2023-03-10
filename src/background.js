@@ -368,7 +368,8 @@ function request(url) {
     },
   })
     .then((res) => res.text())
-    .then((text) => JSON.parse(text.slice(16)).payload);
+    .then((text) => JSON.parse(text.slice(16)).payload)
+    .catch(err => console.error(err));
 }
 
 function requestGraphQl(query) {
