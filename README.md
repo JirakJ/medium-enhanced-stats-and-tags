@@ -7,4 +7,7 @@ Enhancements for your Medium stats page! Get insight into summary of your total 
 
 Get it at [Chrome Web Store](https://chrome.google.com/webstore/detail/medium-enhanced-stats/jnomnfoenpdinfkpaaigokicgcfkomjo)
 
-![Medium Enhanced Stats & Tags](https://raw.githubusercontent.com/tomastrajan/medium-enhanced-stats/master/assets/screen3.png)
+![Medium Enhanced Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_1.png)
+![Medium Enhanced Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_2.png)
+![Medium Enhanced Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3.png)
+![Medium Enhanced Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_4.png)
