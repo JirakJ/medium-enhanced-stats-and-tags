@@ -69,7 +69,6 @@ function init() {
 function updateUI(account) {
   accoundData = account;
   updateStatsTable('articles', account.totals.articles);
-  updateStatsTable('responses', account.totals.responses);
   updateChart(account.totals, account.id);
   updateUser(account.name, account.avatar, account.followers, account.isMember);
 }
@@ -99,8 +98,8 @@ function updateStatsTable(type, totals) {
 }
 
 function updateChart(totals, id) {
-  const { articles, responses } = totals;
-  const reach = articles.views + responses.views;
+  const { articles } = totals;
+  const reach = articles.views;
   const milestone = MILESTONES.find(m => m > reach);
   const milestonePrev = MILESTONES[MILESTONES.indexOf(milestone) - 1];
   const milestoneDiff = milestone - milestonePrev;
@@ -194,8 +193,8 @@ function ignoreScreenshotElement(element) {
 
 function repaintIgnoredScreenshotElements(canvas) {
   const CIRCLE_START = -0.5 * Math.PI;
-  const { articles, responses } = accoundData.totals;
-  const reach = articles.views + responses.views;
+  const { articles } = accoundData.totals;
+  const reach = articles.views;
   const milestone = MILESTONES.find(m => m > reach);
   const milestonePrev = MILESTONES[MILESTONES.indexOf(milestone) - 1];
   const milestoneDiff = milestone - milestonePrev;
@@ -213,7 +212,7 @@ function repaintIgnoredScreenshotElements(canvas) {
   ctx.beginPath();
   ctx.arc(225 * scale, 150 * scale, 80 * scale, CIRCLE_START, (2 * Math.PI * progress) + CIRCLE_START);
   ctx.lineCap = 'round';
-  ctx.strokeStyle = '#03a87c';
+  ctx.strokeStyle = '#0048ff';
   ctx.stroke();
 
 
@@ -223,7 +222,7 @@ function repaintIgnoredScreenshotElements(canvas) {
   ctx.fillText("TOTAL REACH", canvas.width/2, 120 * scale);
   ctx.fillText("NEXT MILESTONE", canvas.width/2, 180 * scale);
 
-  ctx.fillStyle = "#03a87c";
+  ctx.fillStyle = "#0048ff";
   ctx.font = `bold ${fontSizeBig}px sans-serif`;
   ctx.fillText(formatValue(reach), canvas.width/2, 150 * scale);
 
@@ -250,13 +249,12 @@ function exportStats() {
     'views',
     'reads',
     'upvotes',
-    'claps'
+    'claps',
+    'tags'
   ];
   const csv = [
     props.join(';'),
     ...data.user.export.articles.map(article => props.map(prop => article[prop]).join(';')),
-    '',
-    ...data.user.export.responses.map(article => props.map(prop => article[prop]).join(';'))
   ].join('\n');
   const encodedUri = encodeURI(`data:text/csv;charset=utf-8,\uFEFF${csv}`);
 
