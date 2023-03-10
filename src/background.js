@@ -59,17 +59,16 @@ function getTotals(url, payload) {
 
 function handleGetTotals() {
   timer('user');
-  return Promise.all([getTotals('/me/stats'), getTotals('/me/stats/responses')])
-    .then(([articles, responses]) => {
+  return Promise.all([getTotals('/me/stats')])
+    .then(([articles]) => {
       console.log(timerToHumanReadableString('user'));
       timer('followers');
       return fetchFollowers(getUser(articles).username).then((followers) => [
         articles,
-        responses,
         followers,
       ]);
     })
-    .then(([articles, responses, followers]) => {
+    .then(([articles, followers]) => {
       console.log(timerToHumanReadableString('followers'));
       const user = getUser(articles);
       user.id = user.userId;
@@ -77,12 +76,10 @@ function handleGetTotals() {
       user.followers = followers;
       user.avatar = user.imageId;
       user.totals = {
-        articles: calculateTotals(articles),
-        responses: calculateTotals(responses),
+        articles: calculateTotals(articles)
       };
       user.export = {
-        articles: articles.value,
-        responses: responses.value,
+        articles: articles.value
       };
       const collections = getCollections(articles);
       timer('collections');
