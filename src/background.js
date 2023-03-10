@@ -18,6 +18,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleGetNotifications().then(sendResponse);
   }
 
+  if (type === 'GET_POST_STATS_DETAIL') {
+    handleGetPostStatsDetails(postId).then(sendResponse);
+  }
+
+  if (type === 'GET_TAG_DETAIL') {
+    handleGetTagDetail(postId).then(sendResponse);
+  }
+
   return true; // enable async sendResponse
 });
 
@@ -81,6 +89,47 @@ function handleGetTotals() {
       user.export = {
         articles: articles.value
       };
+
+      user.tags = []
+      user.export.articles.map((article, index) => {
+        const tags = []
+        fetchPostDetails(article.postId).then(data => {
+          user.export.articles[index].tags = data.tags;
+
+          console.log(timerToHumanReadableString('fetchPostDetails'));
+          timer('fetch-posts-details');
+          if(data.tags){
+            data.tags.map(tag => {
+              timer('tags');
+              if(tag){
+                if(!user.tags.includes(tag)){
+                  user.tags.push(tag)
+                  tags.push(tag)
+                }
+              }
+            })
+          }
+        }).catch(err => console.error(err))
+      })
+
+      user.tags.map(tag => {
+        fetchTagStats(tag).then(data => {
+          console.log(timerToHumanReadableString('fetchTagDetails'));
+          timer('fetch-tag-details');
+          const res_obj = {
+            tag: tag,
+            writers: data.writers,
+            postCount: data.postCount,
+            followers: data.followers,
+            followersPerStories: Number(data.followers/data.postCount),
+            followersPerWriters: Number(data.followers/data.writers),
+            storiesPerWriters: Number(data.postCount/data.writers),
+          }
+          user.tags.push(res_obj)
+        })
+      })
+
+      console.log("user object", user)
       const collections = getCollections(articles);
       timer('collections');
       return Promise.all(
@@ -105,6 +154,20 @@ function handleGetPostStats(postId) {
   return request(`${API_URL}/stats/${postId}/0/${Date.now()}`).then((data) => {
     console.log(timerToHumanReadableString('post-stats'));
     return calculatePostStats(data);
+  });
+}
+
+function handleGetPostStatsDetails(postId) {
+  timer('post-stats-details');
+  return fetchPostDetails(postId).then(data => {
+    return data;
+  });
+}
+
+function handleGetTagDetail(tag) {
+  timer('tag-detail');
+  return fetchTagStats(tag).then(data => {
+    return data;
   });
 }
 
@@ -176,6 +239,126 @@ function fetchFollowers(username) {
       }
     }`,
   }).then((res) => res.data.userResult.socialStats.followerCount);
+}
+
+function fetchTagStats(tag) {
+  return requestGraphQl([{
+    variables: {
+      tagSlug: tag,
+    },
+    query: `query TagFeaturesSlug($tagSlug: String!) {
+      tagFeaturesFromSlug(tagSlug: $tagSlug) {
+        ... on TagFeature {
+        writerCount
+        }
+      }
+    }`,
+  },
+  {
+    variables: {
+      tagSlug: tag,
+    },
+    query: `query TagSlug($tagSlug: String) {
+      tagFromSlug(tagSlug: $tagSlug) {
+      ...TopicHeaderData
+      }
+    }
+    
+    fragment TopicHeaderData on Tag {
+      id
+      followerCount
+      postCount
+    }`,
+  },
+  {
+    variables: {
+      tagSlug: tag,
+    },
+    query: `query RelatedTagsQuery($tagSlug: String!) {
+  relatedTags(tagSlug: $tagSlug) {
+    ... on Tag {
+      id
+      }
+    }
+  }`,
+  }
+  ]).then((res) => {
+    console.log("fetchTagStats", res)
+    console.log("fetchTagStats", res[0].data)
+    const relatedTags = []
+    res[2].data.relatedTags.map(tag => relatedTags.push(tag.id))
+    const res_obj = {
+      writers: res[0].data.tagFeaturesFromSlug.writerCount,
+      followers: res[1].data.tagFromSlug.followerCount,
+      stories: res[1].data.tagFromSlug.postCount,
+      relatedTags: relatedTags
+    }
+    console.log('Fetching tag details for', tag,res_obj)
+    return res_obj
+  }).catch(err => console.error("fetchTagStats error", err));
+}
+
+function fetchPostDetails(postId) {
+  return requestGraphQl({
+    variables: {
+      postId,
+    },
+    query: `query FullPostScreen($postId: ID!) {
+  post(id: $postId) {
+    ...PostContent
+    ...PostMeta
+  }
+}
+fragment PostContent on Post {
+  tags {
+    ...TopicHeaderData
+  }
+  ...PostContextData
+}
+fragment TopicHeaderData on Tag {
+  id
+}
+fragment PostMeta on Post {
+  id
+  title
+  creator {
+    name
+  }
+  clapCount
+  postResponses {
+    count
+  }
+  canonicalUrl
+  mediumUrl
+  firstPublishedAt
+  readingTime
+}
+fragment PostContextData on Post {
+  id
+  title
+  clapCount
+  postResponses {
+    count
+  }
+}`,
+  }).then((res) => {
+    const tags = []
+    res.data.post.tags.map(tag => tags.push(tag.id))
+    const res_obj = {
+        date: res.data.post.firstPublishedAt,
+        id: res.data.post.id,
+        creator: res.data.post.creator.name,
+        title: res.data.post.title,
+        tags: tags,
+        clapCount: res.data.post.clapCount,
+        comments: res.data.post.postResponses.count,
+        readingTime: res.data.post.readingTime,
+        calculatedWordCount: Number(res.data.post.readingTime)*280,
+        mediumUrl: res.data.post.mediumUrl,
+        canonicalUrl: res.data.post.canonicalUrl,
+    }
+    return res_obj
+  });
 }
 
 function request(url) {
