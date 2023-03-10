@@ -140,7 +140,6 @@ function handleGetTotals() {
           c.avatar = c.image.imageId;
           c.totals = {
             articles: calculateTotals(collectionsStats[index]),
-            responses: calculateTotals(),
           };
         });
         console.log(timerToHumanReadableString('collections'));
