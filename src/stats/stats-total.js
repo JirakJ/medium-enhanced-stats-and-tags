@@ -384,29 +384,65 @@ function updateTableRows(data) {
               barChartRefreshTrigger.next();
             });
         });
-        loadPostStatsDetails(post.postId).then(data => {
-          data.tags.map((tag, index) => {
-            if(index>0){
-              postTitleCellActions.innerHTML += '<span class="middotDivider"></span>';
+
+        chrome.storage.sync.get([post.postId]).then(data => {
+          if(data[post.postId] === undefined){
+            loadPostStatsDetails(post.postId).then(data => {
+              data.tags.map((tag, index) => {
+                const postTitleCellActions = postTitleCell.querySelector(
+                  '.sortableTable-text'
+                );
+                if(index>0){
+                  postTitleCellActions.innerHTML += '<span class="middotDivider"></span>';
+                }
+                const showTagInAction = document.createElement('a');
+                const name = getTagName(tag)
+                showTagInAction.textContent = name;
+                showTagInAction.href = `https://medium.com/tag/${tag}`;
+                showTagInAction.target= "_blank";
+                showTagInAction.className = 'mes-tag';
+                postTitleCellActions.appendChild(showTagInAction);
+              })
+
+              let wordsCountCell = row.querySelector('.wordsCount');
+              if (!wordsCountCell) {
+                wordsCountCell = document.createElement('td');
+                wordsCountCell.className = 'wordsCount';
+                wordsCountCell.textContent = Math.ceil(Number(data.readingTime) * 280);
+                row.appendChild(wordsCountCell);
+              }
+
+            })
+            chrome.storage.sync.set({ [post.postId]: { ...post,...data } }).then(() => {
+              log(`Data for post ${post.postId} has been saved`,{ ...post,...data })
+            });
+          } else {
+            log("Load stored post data",data)
+            data[post.postId].tags.map((tag, index) => {
+              const postTitleCellActions = postTitleCell.querySelector(
+                '.sortableTable-text'
+              );
+              if(index>0){
+                postTitleCellActions.innerHTML += '<span class="middotDivider"></span>';
+              }
+              const showTagInAction = document.createElement('a');
+              const name = getTagName(tag)
+              showTagInAction.textContent = name;
+              showTagInAction.href = `https://medium.com/tag/${tag}`;
+              showTagInAction.target= "_blank";
+              showTagInAction.className = 'mes-tag';
+              postTitleCellActions.appendChild(showTagInAction);
+            })
+
+            let wordsCountCell = row.querySelector('.wordsCount');
+            if (!wordsCountCell) {
+              wordsCountCell = document.createElement('td');
+              wordsCountCell.className = 'wordsCount';
+              wordsCountCell.textContent = Math.ceil(Number(data[post.postId].readingTime) * 280);
+              row.appendChild(wordsCountCell);
             }
-            const showTagInAction = document.createElement('a');
-            const name = getTagName(tag)
-            showTagInAction.textContent = name;
-            showTagInAction.href = `https://medium.com/tag/${tag}`;
-            showTagInAction.target= "_blank";
-            showTagInAction.className = 'mes-tag';
-            postTitleCellActions.appendChild(showTagInAction);
-          })
-
-          let wordsCountCell = row.querySelector('.wordsCount');
-          if (!wordsCountCell) {
-            wordsCountCell = document.createElement('td');
-            wordsCountCell.className = 'wordsCount';
-            wordsCountCell.textContent = Math.ceil(Number(data.readingTime) * 280);
-            row.appendChild(wordsCountCell);
           }
-
-        })
+        });
       }
     });
 }
