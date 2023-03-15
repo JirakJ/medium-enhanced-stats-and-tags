@@ -447,13 +447,6 @@ function updateTableRows(data) {
     });
 }
 
-function deselectActivePost() {
-  const activePostRow = document.querySelector('tr.is-active');
-  if (activePostRow) {
-    activePostRow.click();
-  }
-}
-
 function scrollToBarChart() {
   document
     .querySelector('.chartTabs')
