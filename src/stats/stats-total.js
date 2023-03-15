@@ -385,7 +385,7 @@ function updateTableRows(data) {
             });
         });
 
-        chrome.storage.sync.get([post.postId]).then(data => {
+        chrome.storage.local.get([post.postId]).then(data => {
           if(data[post.postId] === undefined){
             loadPostStatsDetails(post.postId).then(data => {
               data.tags.map((tag, index) => {
@@ -413,7 +413,7 @@ function updateTableRows(data) {
               }
 
             })
-            chrome.storage.sync.set({ [post.postId]: { ...post,...data } }).then(() => {
+            chrome.storage.local.set({ [post.postId]: { ...post,...data } }).then(() => {
               log(`Data for post ${post.postId} has been saved`,{ ...post,...data })
             });
           } else {
