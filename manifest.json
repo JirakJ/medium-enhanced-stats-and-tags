@@ -5,9 +5,9 @@
   "manifest_version": 3,
   "author": "Jakub Jirák <jakub@jakubjirak.com>",
   "permissions": [
-    "storage",
     "tabs",
-    "activeTab"
+    "storage",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "https://medium.com/",
