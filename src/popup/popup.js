@@ -58,11 +58,26 @@ init();
 function init() {
   $body.classList.add('loading');
   $chartProgress.setAttribute('stroke-dasharray', `0 100`);
-  chrome.runtime.sendMessage({ type: 'GET_TOTALS'}, {}, response => {
-    data = response;
-    updateUserSelector(data);
-    updateUI(data.user);
-    $body.classList.remove('loading');
+  chrome.storage.local.get(['GET_TOTALS']).then(data => {
+    if(data['GET_TOTALS'] === undefined || data['GET_TOTALS'] === {} || (Date.now() - data['GET_TOTALS'].lastUpdate) > 21600000){
+      chrome.runtime.sendMessage({ type: 'GET_TOTALS'}, {}, response => {
+        chrome.storage.local.set({ ['GET_TOTALS']: response }).then(() => {
+          data = response;
+          updateUserSelector(data);
+          updateUI(data.user);
+          $body.classList.remove('loading');
+          log(`Data for user ${data.user.name} has been saved`,data)
+          return;
+        });
+      });
+
+    }  else {
+      log(`Load stored for user data`,data['GET_TOTALS'])
+      updateUserSelector(data['GET_TOTALS']);
+      updateUI(data['GET_TOTALS'].user);
+      $body.classList.remove('loading');
+      return;
+    }
   });
 }
 
@@ -114,7 +129,7 @@ function updateChart(totals, id) {
   $infoMilestoneCurrent.textContent = formatWholeNumber(reach - milestonePrev);
   $infoMilestoneProgress.textContent = `${progress}%`;
 
-  chrome.storage.sync.get([id], result => {
+  chrome.storage.local.get([id], result => {
     if(result[id] === undefined) {
       chrome.storage.sync.set({ [id]: { milestoneActive: milestone } });
       return;
@@ -233,7 +248,7 @@ function repaintIgnoredScreenshotElements(canvas) {
 
 function downloadCanvas(canvas) {
   const accountName = accoundData.name.toLowerCase().replace(' ', '-');
-  $downloadLink.download = `medium-enhanced-stats-${accountName}.png`;
+  $downloadLink.download = `medium-enchanted-stats-${accountName}.png`;
   $downloadLink.href = canvas.toDataURL('image/png');
   $downloadLink.click();
 }
@@ -259,7 +274,7 @@ function exportStats() {
   const encodedUri = encodeURI(`data:text/csv;charset=utf-8,\uFEFF${csv}`);
 
   $downloadLink.href = encodedUri;
-  $downloadLink.download = `medium-enhanced-stats-${accountName}.csv`;
+  $downloadLink.download = `medium-enchanted-stats-${accountName}.csv`;
   $downloadLink.click();
 }
 
@@ -323,4 +338,8 @@ function generateMilestones() {
     1000000000000,
     10000000000000
   ];
+}
+
+function log(...args) {
+  console.log('Medium Enhanced Stats & Tags [popup] -', ...args);
 }
