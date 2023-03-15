@@ -23,7 +23,7 @@
         "https://medium.com/*"
       ],
       "all_frames": true,
-      "run_at": "document_idle",
+      "run_at": "document_end",
       "css": [
         "src/stats/stats-total.css",
         "src/partner/partner.css",
