@@ -31,12 +31,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.tabs.onUpdated.addListener(
   function(tabId, changeInfo, tab) {
-    // read changeInfo data and do something with it
-    // like send the new url to contentscripts.js
-    if (changeInfo.url) {
+    if (tab.url && tab.status === 'complete' && !tab.url.includes("?") && tab.url.includes("tag")){
       chrome.tabs.sendMessage( tabId, {
         message: 'url_changed',
-        url: changeInfo.url
+        rerender: true
+      })
+    } else if (changeInfo.url && !changeInfo.url.includes("?") && tab.changeInfo.includes("tag")){
+      chrome.tabs.sendMessage( tabId, {
+        message: 'url_changed',
+        rerender: false
       })
     }
   }
@@ -295,15 +298,17 @@ function fetchTagStats(tag) {
   }`,
   }
   ]).then((res) => {
-    console.log("fetchTagStats", res)
-    console.log("fetchTagStats", res[0].data)
     const relatedTags = []
     res[2].data.relatedTags.map(tag => relatedTags.push(tag.id))
     const res_obj = {
       writers: res[0].data.tagFeaturesFromSlug.writerCount,
       followers: res[1].data.tagFromSlug.followerCount,
       stories: res[1].data.tagFromSlug.postCount,
-      relatedTags: relatedTags
+      followersPerStories: Number(res[1].data.tagFromSlug.followerCount/res[1].data.tagFromSlug.postCount),
+      followersPerWriters: Number(res[1].data.tagFromSlug.followerCount/res[0].data.tagFeaturesFromSlug.writerCount),
+      storiesPerWriters: Number(res[1].data.tagFromSlug.postCount/res[0].data.tagFeaturesFromSlug.writerCount),
+      relatedTags: relatedTags,
+      lastUpdate: Date.now()
     }
     console.log('Fetching tag details for', tag,res_obj)
     return res_obj
