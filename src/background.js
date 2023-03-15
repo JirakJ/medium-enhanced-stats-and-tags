@@ -97,41 +97,61 @@ function handleGetTotals() {
 
       user.tags = []
       user.export.articles.map((article, index) => {
-        const tags = []
-        fetchPostDetails(article.postId).then(data => {
-          user.export.articles[index].tags = data.tags;
+          chrome.storage.local.get([article.postId]).then(data => {
+          if(data[article.postId] === undefined || (Date.now() - data[article.postId].lastUpdate) > 21600000){
+            const tags = []
+            fetchPostDetails(article.postId).then(data => {
+              user.export.articles[index].tags = data.tags;
 
-          console.log(timerToHumanReadableString('fetchPostDetails'));
-          timer('fetch-posts-details');
-          if(data.tags){
-            data.tags.map(tag => {
-              timer('tags');
-              if(tag){
-                if(!user.tags.includes(tag)){
-                  user.tags.push(tag)
-                  tags.push(tag)
-                }
+              console.log(timerToHumanReadableString('fetchPostDetails'));
+              timer('fetch-posts-details');
+              if(data.tags){
+                data.tags.map(tag => {
+                  timer('tags');
+                  if(tag){
+                    if(!user.tags.includes(tag)){
+                      user.tags.push(tag)
+                      tags.push(tag)
+                    }
+                  }
+                })
+                article.lastUpdate = Date.now();
+                chrome.storage.local.set({ [article.postId]: article }).then(() => {
+                  console.log(`Data for article ${article.postId} has been saved`,article)
+                });
               }
-            })
+            }).catch(err => console.error(err))
+          } else {
+            article = data[article.postId]
           }
-        }).catch(err => console.error(err))
+        });
       })
 
       user.tags.map(tag => {
-        fetchTagStats(tag).then(data => {
-          console.log(timerToHumanReadableString('fetchTagDetails'));
-          timer('fetch-tag-details');
-          const res_obj = {
-            tag: tag,
-            writers: data.writers,
-            postCount: data.postCount,
-            followers: data.followers,
-            followersPerStories: Number(data.followers/data.postCount),
-            followersPerWriters: Number(data.followers/data.writers),
-            storiesPerWriters: Number(data.postCount/data.writers),
+        chrome.storage.local.get([tag]).then(data => {
+          if(data[tag] === undefined || (Date.now() - data[tag].lastUpdate) > 21600000){
+            fetchTagStats(tag).then(data => {
+              console.log(timerToHumanReadableString('fetchTagDetails'));
+              timer('fetch-tag-details');
+              const res_obj = {
+                lastUpdate: Date.now(),
+                tag: tag,
+                writers: data.writers,
+                postCount: data.postCount,
+                followers: data.followers,
+                followersPerStories: Number(data.followers/data.postCount),
+                followersPerWriters: Number(data.followers/data.writers),
+                storiesPerWriters: Number(data.postCount/data.writers),
+              }
+              user.tags.push(res_obj)
+              chrome.storage.local.set({ [tag]: res_obj }).then(() => {
+                logTag(`Data for tag ${tag} has been saved`,res_obj)
+              });
+            })
+          } else {
+            user.tags.push(data[tag])
           }
-          user.tags.push(res_obj)
-        })
+        });
       })
 
       console.log("user object", user)
@@ -141,11 +161,22 @@ function handleGetTotals() {
         collections.map((c) => getTotals(`/${c.slug}/stats`))
       ).then((collectionsStats) => {
         collections.forEach((c, index) => {
-          c.followers = c.metadata.followerCount;
-          c.avatar = c.image.imageId;
-          c.totals = {
-            articles: calculateTotals(collectionsStats[index]),
-          };
+          console.log("c",c)
+          chrome.storage.local.get([c.id]).then(data => {
+            if(data[c.id] === undefined || (Date.now() - data[c.id].lastUpdate) > 21600000){
+              c.lastUpdate = Date.now();
+              c.followers = c.metadata.followerCount;
+              c.avatar = c.image.imageId;
+              c.totals = {
+                articles: calculateTotals(collectionsStats[index]),
+              };
+              chrome.storage.local.set({ [c.id]: c }).then(() => {
+                logTag(`Data for collection ${c.id} has been saved`,c)
+              });
+            } else {
+              c = data[c.id]
+            }
+          });
         });
         console.log(timerToHumanReadableString('collections'));
         return { user, collections };
