@@ -27,14 +27,12 @@
       "css": [
         "src/stats/stats-total.css",
         "src/partner/partner.css",
-        "src/tag/tag.css",
         "src/tags/tags.css"
       ],
       "js": [
         "src/libs/rxjs.js",
         "src/stats/stats-total.js",
         "src/partner/partner.js",
-        "src/tag/tag.js",
         "src/tags/tags.js"
       ]
     }
