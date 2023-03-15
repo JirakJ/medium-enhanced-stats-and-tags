@@ -413,11 +413,8 @@ function updateTableRows(data) {
               }
 
             })
-            chrome.storage.local.set({ [post.postId]: { ...post,...data } }).then(() => {
-              log(`Data for post ${post.postId} has been saved`,{ ...post,...data })
-            });
+            chrome.storage.local.set({ [post.postId]: { ...post,...data } });
           } else {
-            log("Load stored post data",data)
             data[post.postId].tags.map((tag, index) => {
               const postTitleCellActions = postTitleCell.querySelector(
                 '.sortableTable-text'

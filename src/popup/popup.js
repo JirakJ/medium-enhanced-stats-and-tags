@@ -66,13 +66,11 @@ function init() {
           updateUserSelector(data);
           updateUI(data.user);
           $body.classList.remove('loading');
-          log(`Data for user ${data.user.name} has been saved`,data)
           return;
         });
       });
 
     }  else {
-      log(`Load stored for user data`,data['GET_TOTALS'])
       updateUserSelector(data['GET_TOTALS']);
       updateUI(data['GET_TOTALS'].user);
       $body.classList.remove('loading');

@@ -18,13 +18,10 @@ function waitForElementToDisplay(selector, callback, checkFrequencyInMs, timeout
   })();
 }
 function renderTagStats(element, results) {
-  logTag("results",results)
   const tagData = results
   const container$ = element.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement
-  // const container$ = document.querySelector(`a[href^="/tag/${results.tag}"]`).parentElement.parentElement.parentElement.parentElement.parentElement.parentElement
+
   const tagStatsContainer$ = document.querySelector(`.mes-tag-stats-extras`);
-  // logTag(container$)
-  // logTag(tagStatsContainer$)
   if(tagStatsContainer$){
     tagStatsContainer$.remove()
   }
@@ -38,7 +35,6 @@ function renderTagStats(element, results) {
       stories,
       relatedTags
     } = tagData;
-    logTag("tagData",tagData)
     const tagStatsExtrasDOM = document.createElement('div');
 
     const followersToStories = Math.round((Number(followers)/Number(stories))*100)/100;
@@ -111,10 +107,7 @@ chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     // listen for messages sent from background.js
     if (request.message === 'url_changed') {
-      logTag("Current url",request.url)
-
       function loadTagDetails(tag) {
-        log('load tag details for ', tag);
         return new Promise((resolve) =>
           chrome.runtime.sendMessage({ type: 'GET_TAG_DETAIL', postId:tag }, {}, (data) =>
             resolve(data)
@@ -125,16 +118,12 @@ chrome.runtime.onMessage.addListener(
       try {
         const currentUrl = window.location.toString();
         const tag = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
-        logTag("Searched tag",tag, currentUrl);
         waitForElementToDisplay(`a[href^="/tag/${tag}"]`,function(element){
-          logTag("Finnaly here");
           chrome.storage.local.get([tag]).then(data => {
             if(data[tag] === undefined || (Date.now() - data[tag].lastUpdate) > 21600000){
               loadTagDetails(tag).then(data => {
-                logTag("loadTagDetails", data)
                 data.tag = tag;
                 chrome.storage.local.set({ [tag]: data }).then(() => {
-                  logTag(`Data for tag ${tag} has been saved`,data)
                   if(request.rerender){
                     renderTagStats(element, data)
                   }
@@ -142,7 +131,6 @@ chrome.runtime.onMessage.addListener(
                 });
               })
             }  else {
-              logTag(`Load stored for tag ${tag} data`,data)
               if(request.rerender){
                 renderTagStats(element, data[tag])
               }
@@ -151,8 +139,6 @@ chrome.runtime.onMessage.addListener(
           });
 
         },1000,9000);
-
-        logTag('finished');
       } catch (error) {
         console.error('Medium Enhanced Stats & Tags [tag]', error);
       }

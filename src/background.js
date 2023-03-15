@@ -117,7 +117,7 @@ function handleGetTotals() {
                 })
                 article.lastUpdate = Date.now();
                 chrome.storage.local.set({ [article.postId]: article }).then(() => {
-                  console.log(`Data for article ${article.postId} has been saved`,article)
+                  console.debug(`Data for article ${article.postId} has been saved`,article)
                 });
               }
             }).catch(err => console.error(err))
@@ -144,9 +144,7 @@ function handleGetTotals() {
                 storiesPerWriters: Number(data.postCount/data.writers),
               }
               user.tags.push(res_obj)
-              chrome.storage.local.set({ [tag]: res_obj }).then(() => {
-                logTag(`Data for tag ${tag} has been saved`,res_obj)
-              });
+              chrome.storage.local.set({ [tag]: res_obj });
             })
           } else {
             user.tags.push(data[tag])
@@ -154,14 +152,12 @@ function handleGetTotals() {
         });
       })
 
-      console.log("user object", user)
       const collections = getCollections(articles);
       timer('collections');
       return Promise.all(
         collections.map((c) => getTotals(`/${c.slug}/stats`))
       ).then((collectionsStats) => {
         collections.forEach((c, index) => {
-          console.log("c",c)
           chrome.storage.local.get([c.id]).then(data => {
             if(data[c.id] === undefined || (Date.now() - data[c.id].lastUpdate) > 21600000){
               c.lastUpdate = Date.now();
@@ -170,9 +166,7 @@ function handleGetTotals() {
               c.totals = {
                 articles: calculateTotals(collectionsStats[index]),
               };
-              chrome.storage.local.set({ [c.id]: c }).then(() => {
-                logTag(`Data for collection ${c.id} has been saved`,c)
-              });
+              chrome.storage.local.set({ [c.id]: c }).then(() => {});
             } else {
               c = data[c.id]
             }
@@ -330,7 +324,6 @@ function fetchTagStats(tag) {
       relatedTags: relatedTags,
       lastUpdate: Date.now()
     }
-    console.log('Fetching tag details for', tag,res_obj)
     return res_obj
   }).catch(err => console.error("fetchTagStats error", err));
 }

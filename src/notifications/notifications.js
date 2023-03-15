@@ -9,7 +9,6 @@ const mesUrlChange$ = timer(0, 1000)
     map(() => window.location.href),
     filter(currentUrl => currentUrl !== mesUrl),
     tap(currentUrl => {
-      console.log(currentUrl);
       mesUrl = currentUrl;
     })
   );
