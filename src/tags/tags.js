@@ -39,41 +39,54 @@ function renderTagStats(element, results) {
 
     const followersToStories = Math.round((Number(followers)/Number(stories))*100)/100;
     function followersToStoriesCell(followersToStories) {
-      let final_class = ""
+      let final_class = "";
+      let title = "";
       if (followersToStories >=5) {
-        final_class = "value excellent"
+        final_class = "value excellent";
+        title = "Excellent followers to stories higher than 5x";
       } else if(followersToStories>=2.5){
-        final_class = "value good"
+        final_class = "value good";
+        title = "Good followers to stories higher than 2.5x";
+      } else if(followersToStories>=1){
+        final_class = "value";
       } else {
         final_class = "value bad"
+        title = "Bad followers to stories less than 1x";
       }
-      return `<td class="${final_class}">${followersToStories}</td>`
+      return `<td class="${final_class}" title="${title}">${followersToStories}</td>`
     }
 
     function followersToWritersCell(followersToWriters) {
-      let final_class = ""
+      let final_class = "";
+      let title = "";
       if (followersToWriters > 50) {
-        final_class = "value excellent"
+        final_class = "value excellent";
+        title="Excellent followers to writers above 50";
       } else if(followersToWriters >= 20){
-        final_class = "value good"
+        final_class = "value good";
+        title="Good followers to writers above 20";
       } else if(followersToWriters < 1){
         final_class = "value bad"
+        title="Bad followers to writers bellow 1";
       } else {
         final_class = "value"
       }
-      return `<td class="${final_class}">${followersToWriters}</td>`
+      return `<td class="${final_class}" title="${title}">${followersToWriters}</td>`
     }
 
     function followersCell(followers) {
-      let final_class = ""
+      let final_class = "";
+      let title = "";
       if(followers<50){
-        final_class = "value bad"
+        final_class = "value bad";
+        title="Followers bellow 50";
       } else if (followersToStories >=5) {
-        final_class = "value excellent"
+        final_class = "value excellent";
+        title = "Excellent 5x or more followers than stories";
       } else {
-        final_class = "value"
+        final_class = "value";
       }
-      return `<td class="${final_class}">${followers}</td>`
+      return `<td class="${final_class}" title="${title}">${followers}</td>`
     }
 
     const followersToWriters = Math.round((Number(followers)/Number(writers))*100)/100;
