@@ -98,7 +98,7 @@ function handleGetTotals() {
       user.tags = []
       user.export.articles.map((article, index) => {
           chrome.storage.local.get([article.postId]).then(data => {
-          if(data[article.postId] === undefined || (Date.now() - data[article.postId].lastUpdate) > 21600000){
+          if(data[article.postId] === undefined || !data[article.postId].hasOwnProperty("lastUpdate") || (Date.now() - data[article.postId].lastUpdate) > 21600000){
             const tags = []
             fetchPostDetails(article.postId).then(data => {
               user.export.articles[index].tags = data.tags;
@@ -129,7 +129,7 @@ function handleGetTotals() {
 
       user.tags.map(tag => {
         chrome.storage.local.get([tag]).then(data => {
-          if(data[tag] === undefined || (Date.now() - data[tag].lastUpdate) > 21600000){
+          if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 21600000){
             fetchTagStats(tag).then(data => {
               console.log(timerToHumanReadableString('fetchTagDetails'));
               timer('fetch-tag-details');
@@ -159,7 +159,7 @@ function handleGetTotals() {
       ).then((collectionsStats) => {
         collections.forEach((c, index) => {
           chrome.storage.local.get([c.id]).then(data => {
-            if(data[c.id] === undefined || (Date.now() - data[c.id].lastUpdate) > 21600000){
+            if(data[c.id] === undefined || !data[c.id].hasOwnProperty("lastUpdate") || (Date.now() - data[c.id].lastUpdate) > 21600000){
               c.lastUpdate = Date.now();
               c.followers = c.metadata.followerCount;
               c.avatar = c.image.imageId;

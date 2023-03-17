@@ -59,8 +59,9 @@ function init() {
   $body.classList.add('loading');
   $chartProgress.setAttribute('stroke-dasharray', `0 100`);
   chrome.storage.local.get(['GET_TOTALS']).then(data => {
-    if(data['GET_TOTALS'] === undefined || data['GET_TOTALS'] === {} || (Date.now() - data['GET_TOTALS'].lastUpdate) > 21600000){
+    if(data['GET_TOTALS'] === undefined || !data['GET_TOTALS'].hasOwnProperty("lastUpdate") || data['GET_TOTALS'] === {} || (Date.now() - data['GET_TOTALS'].lastUpdate) > 21600000){
       chrome.runtime.sendMessage({ type: 'GET_TOTALS'}, {}, response => {
+        response["lastUpdate"] = Date.now();
         chrome.storage.local.set({ ['GET_TOTALS']: response }).then(() => {
           data = response;
           updateUserSelector(data);

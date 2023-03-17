@@ -120,7 +120,7 @@ chrome.runtime.onMessage.addListener(
         const tag = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
         waitForElementToDisplay(`a[href^="/tag/${tag}"]`,function(element){
           chrome.storage.local.get([tag]).then(data => {
-            if(data[tag] === undefined || (Date.now() - data[tag].lastUpdate) > 21600000){
+            if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 21600000){
               loadTagDetails(tag).then(data => {
                 data.tag = tag;
                 chrome.storage.local.set({ [tag]: data }).then(() => {
