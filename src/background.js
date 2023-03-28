@@ -134,7 +134,7 @@ function handleGetTotals() {
 
       user.tags.map(tag => {
         chrome.storage.local.get([tag]).then(data => {
-          if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 21600000){
+          if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 604800000){
             fetchTagStats(tag).then(data => {
               console.log(timerToHumanReadableString('fetchTagDetails'));
               timer('fetch-tag-details');
