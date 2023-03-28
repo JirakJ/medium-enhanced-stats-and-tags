@@ -266,15 +266,21 @@ function exportStats() {
     'claps',
     'tags'
   ];
-  const csv = [
-    props.join(';'),
-    ...data.user.export.articles.map(article => props.map(prop => article[prop]).join(';')),
-  ].join('\n');
-  const encodedUri = encodeURI(`data:text/csv;charset=utf-8,\uFEFF${csv}`);
 
-  $downloadLink.href = encodedUri;
-  $downloadLink.download = `medium-enchanted-stats-${accountName}.csv`;
-  $downloadLink.click();
+  chrome.storage.local.get(['GET_TOTALS']).then(data => {
+
+      console.log("data['GET_TOTALS']", data['GET_TOTALS'])
+      const csv = [
+        props.join(';'),
+        ...data['GET_TOTALS'].user.export.articles.map(article => props.map(prop => article[prop]).join(';')),
+      ].join('\n');
+      const encodedUri = encodeURI(`data:text/csv;charset=utf-8,\uFEFF${csv}`);
+
+      $downloadLink.href = encodedUri;
+      $downloadLink.download = `medium-enchanted-stats-${accountName}.csv`;
+      $downloadLink.click();
+      return;
+  });
 }
 
 function formatValue(number = 0) {
