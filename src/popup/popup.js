@@ -90,11 +90,14 @@ function updateUI(account) {
 function updateAccount(id) {
   $body.classList.add('loading');
   $chartProgress.setAttribute('stroke-dasharray', `0 100`);
-  const account = id === 'user' ? data.user : data.collections[id];
-  setTimeout(() => {
-    $body.classList.remove('loading');
-    $userSelector.style.display = 'none';
-    updateUI(account);
+
+  chrome.storage.local.get(['GET_TOTALS']).then(data => {
+    const account = id === 'user' ? data['GET_TOTALS'].user : data['GET_TOTALS'].collections[id];
+    setTimeout(() => {
+      $body.classList.remove('loading');
+      $userSelector.style.display = 'none';
+      updateUI(account);
+    });
   });
 }
 
@@ -175,12 +178,13 @@ function updateUser(name, avatar, followers, isMember) {
 }
 
 function updateUserSelector(data) {
-  const { user, collections } = data;
-  const options = collections
-    .map((c, index)=> ({ id: index, label: c.name, avatar: c.avatar, account: c }));
-  options.unshift({ id: 'user', label: user.name, avatar: user.avatar, account: user });
+  chrome.storage.local.get(['GET_TOTALS']).then(data => {
+    const { user, collections } = data['GET_TOTALS'];
+    const options = collections
+      .map((c, index)=> ({ id: index, label: c.name, avatar: c.image.imageId, account: c }));
+    options.unshift({ id: 'user', label: user.name, avatar: user.avatar, account: user });
 
-  $userSelector.innerHTML = `
+    $userSelector.innerHTML = `
     ${options.map(o => `
         <div class="option" data-id="${o.id}">
             <span class="user">${o.label}</span>
@@ -188,8 +192,9 @@ function updateUserSelector(data) {
         </div>`
     ).join('')}
   `;
-  Array.from(document.querySelectorAll('.user-selector div'))
-    .forEach(n => n.addEventListener('click', () => updateAccount(n.getAttribute('data-id'))));
+    Array.from(document.querySelectorAll('.user-selector div'))
+      .forEach(n => n.addEventListener('click', () => updateAccount(n.getAttribute('data-id'))));
+  });
 }
 
 function ignoreScreenshotElement(element) {
@@ -268,8 +273,6 @@ function exportStats() {
   ];
 
   chrome.storage.local.get(['GET_TOTALS']).then(data => {
-
-      console.log("data['GET_TOTALS']", data['GET_TOTALS'])
       const csv = [
         props.join(';'),
         ...data['GET_TOTALS'].user.export.articles.map(article => props.map(prop => article[prop]).join(';')),

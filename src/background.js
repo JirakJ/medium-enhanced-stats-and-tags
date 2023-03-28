@@ -100,62 +100,27 @@ function handleGetTotals() {
         articles: articles.value
       };
 
-      user.tags = []
       user.export.articles.map((article, index) => {
           chrome.storage.local.get([article.postId]).then(data => {
-          if(data[article.postId] === undefined || !data[article.postId].hasOwnProperty("lastUpdate") || (Date.now() - data[article.postId].lastUpdate) > 21600000){
-            const tags = []
-            fetchPostDetails(article.postId).then(data => {
-              user.export.articles[index].tags = data.tags;
+            if(data[article.postId] === undefined || !data[article.postId].hasOwnProperty("lastUpdate") || (Date.now() - data[article.postId].lastUpdate) > 21600000){
+              fetchPostDetails(article.postId).then(data => {
+                user.export.articles[index].tags = data.tags;
 
-              console.log(timerToHumanReadableString('fetchPostDetails'));
-              timer('fetch-posts-details');
-              if(data.tags){
-                data.tags.map(tag => {
-                  timer('tags');
-                  if(tag){
-                    if(!user.tags.includes(tag)){
-                      user.tags.push(tag)
-                      tags.push(tag)
-                    }
-                  }
-                })
+                console.log(timerToHumanReadableString('fetchPostDetails'));
+                timer('fetch-posts-details');
                 article.lastUpdate = Date.now();
                 chrome.storage.local.set({ [article.postId]: article }).then(() => {
                   console.debug(`Data for article ${article.postId} has been saved`,article)
                 });
-              }
-            }).catch(err => console.error(err))
-          } else {
-            article = data[article.postId]
-          }
-        });
-      })
-
-      user.tags.map(tag => {
-        chrome.storage.local.get([tag]).then(data => {
-          if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 604800000){
-            fetchTagStats(tag).then(data => {
-              console.log(timerToHumanReadableString('fetchTagDetails'));
-              timer('fetch-tag-details');
-              const res_obj = {
-                lastUpdate: Date.now(),
-                tag: tag,
-                writers: data.writers,
-                postCount: data.postCount,
-                followers: data.followers,
-                followersPerStories: Number(data.followers/data.postCount),
-                followersPerWriters: Number(data.followers/data.writers),
-                storiesPerWriters: Number(data.postCount/data.writers),
-              }
-              user.tags.push(res_obj)
-              chrome.storage.local.set({ [tag]: res_obj });
-            })
-          } else {
-            user.tags.push(data[tag])
-          }
-        });
-      })
+                return;
+              }).catch(err => console.error(err))
+              return;
+            } else {
+              article = data[article.postId]
+              return;
+            }
+          });
+        })
 
       const collections = getCollections(articles);
       timer('collections');
@@ -169,9 +134,9 @@ function handleGetTotals() {
               c.followers = c.metadata.followerCount;
               c.avatar = c.image.imageId;
               c.totals = {
-                articles: calculateTotals(collectionsStats[index]),
+                articles: calculateTotals(collectionsStats[index])
               };
-              chrome.storage.local.set({ [c.id]: c }).then(() => {});
+              chrome.storage.local.set({ [c.id]: c });
             } else {
               c = data[c.id]
             }
@@ -323,9 +288,9 @@ function fetchTagStats(tag) {
       writers: res[0].data.tagFeaturesFromSlug.writerCount,
       followers: res[1].data.tagFromSlug.followerCount,
       stories: res[1].data.tagFromSlug.postCount,
-      followersPerStories: Number(res[1].data.tagFromSlug.followerCount/res[1].data.tagFromSlug.postCount),
-      followersPerWriters: Number(res[1].data.tagFromSlug.followerCount/res[0].data.tagFeaturesFromSlug.writerCount),
-      storiesPerWriters: Number(res[1].data.tagFromSlug.postCount/res[0].data.tagFeaturesFromSlug.writerCount),
+      followersToStories: Number(res[1].data.tagFromSlug.followerCount/res[1].data.tagFromSlug.postCount),
+      followersToWriters: Number(res[1].data.tagFromSlug.followerCount/res[0].data.tagFeaturesFromSlug.writerCount),
+      storiesToWriters: Number(res[1].data.tagFromSlug.postCount/res[0].data.tagFeaturesFromSlug.writerCount),
       relatedTags: relatedTags,
       lastUpdate: Date.now()
     }
