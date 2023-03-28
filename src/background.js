@@ -209,13 +209,13 @@ function handleGetPostStatsToday(postId) {
   timer('post-stats-today');
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  console.log(
+  console.debug(
     `${API_URL}/stats/${postId}/${todayStart.getTime()}/${Date.now()}`
   );
   return request(
     `${API_URL}/stats/${postId}/${todayStart.getTime()}/${Date.now()}`
   ).then((data) => {
-    console.log(timerToHumanReadableString('post-stats-today'));
+    console.info(timerToHumanReadableString('post-stats-today'));
     return calculatePostStats(data);
   });
 }
