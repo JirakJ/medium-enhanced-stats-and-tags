@@ -143,6 +143,14 @@ function loadPostStatsDetails(postId) {
   );
 }
 
+function loadTagDetails(tag) {
+  return new Promise((resolve) =>
+    chrome.runtime.sendMessage({ type: 'GET_TAG_DETAIL', postId:tag }, {}, (data) =>
+      resolve(data)
+    )
+  );
+}
+
 function cleanBarChartExtras() {
   if (barChartExtrasDOM) {
     barChartExtrasDOM.innerHTML = '';
@@ -388,22 +396,222 @@ function updateTableRows(data) {
         chrome.storage.local.get([post.postId]).then(data => {
           if(data[post.postId] === undefined){
             loadPostStatsDetails(post.postId).then(data => {
-              data.tags.map((tag, index) => {
-                const postTitleCellActions = postTitleCell.querySelector(
-                  '.sortableTable-text'
-                );
-                if(index>0){
-                  postTitleCellActions.innerHTML += '<span class="middotDivider"></span>';
-                }
+              const showTagInActionTable = document.createElement('table');
+              const showTagInActionRow = document.createElement('tr');
+              const showTagInActionRow2 = document.createElement('tr');
+              data[post.postId].tags.map((tag, index) => {
+                const showTagInActionCell = document.createElement('td');
+                const showTagInActionCell2 = document.createElement('td');
                 const showTagInAction = document.createElement('a');
-                const name = getTagName(tag)
-                showTagInAction.textContent = name;
-                showTagInAction.href = `https://medium.com/tag/${tag}`;
-                showTagInAction.target= "_blank";
-                showTagInAction.className = 'mes-tag';
-                postTitleCellActions.appendChild(showTagInAction);
-              })
+                chrome.storage.local.get([tag]).then(data => {
+                  if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 604800000){
+                    loadTagDetails(tag).then(data => {
+                      data.tag = tag;
+                      chrome.storage.local.set({ [tag]: data }).then(() => {
+                        const followersToStories = Math.round((Number(data[tag].followers)/Number(data[tag].stories))*100)/100;
+                        const followersToWriters = Math.round((Number(data[tag].followers)/Number(data[tag].writers))*100)/100;
+                        const storiesToWriters = Math.round((Number(data[tag].stories)/Number(data[tag].writers))*100)/100;
+                        function followersCell(followers) {
+                          let final_class = "";
+                          let title = "";
+                          if (followersToStories >=5) {
+                            final_class = "mes-tag excellent";
+                            title = "Excellent 5x or more followers than stories";
+                          } else if (followersToWriters > 50) {
+                            final_class = "mes-tag excellent";
+                            title="Excellent followers to writers above 50. Here people really want more content.";
+                          } else if(followersToWriters >= 20){
+                            final_class = "mes-tag good";
+                            title="Good followers to writers above 20";
+                          } else if(followersToWriters < 1){
+                            final_class = "mes-tag bad"
+                            title="Bad followers to writers bellow 1";
+                          } else if (followersToStories >=4) {
+                            final_class = "mes-tag amazing";
+                            title = "Amazing followers to stories higher than 4x";
+                          } else if(followersToStories>=2.5){
+                            final_class = "mes-tag good";
+                            title = "Good followers to stories higher than 2.5x";
+                          } else if(followersToStories<0.1) {
+                            final_class = "mes-tag bad"
+                            title = "Bad followers to stories less than 0.1x";
+                          } else if(storiesToWriters>50){
+                            final_class = "mes-tag bad";
+                            title="Here is propably one owner of this tag, so it may be hard to beat him.";
+                          } else if(followers<50){
+                            final_class = "mes-tag bad";
+                            title="Followers bellow 50, find better tag";
+                          } else {
+                            final_class = "mes-tag";
+                          }
 
+                          return [final_class, title]
+                        }
+
+                        [className, title] = followersCell(data[tag].followers)
+                        showTagInAction.textContent = getTagName(tag);
+                        showTagInAction.href = `https://medium.com/tag/${tag}`;
+                        showTagInAction.target= "_blank";
+                        showTagInAction.className = className;
+                        showTagInAction.title = title;
+                        showTagInActionCell.appendChild(showTagInAction);
+                        showTagInActionRow.appendChild(showTagInActionCell);
+
+                        const  dollar = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48"><title>currency-dollar-1</title><g><path d="M38,31.943c0-7.013-6.468-9.372-12-11.144V8.487a27.133,27.133,0,0,1,7.126,1.3l2.337.876L37.219,5.98,34.878,5.1A31.706,31.706,0,0,0,26,3.481V0H22V3.584c-6.845.738-11,4.561-11,10.359,0,6.594,5.718,9.072,11,10.819v12.59a33.358,33.358,0,0,1-8.651-1.761L11,34.742l-1.7,4.7,2.351.849A38.2,38.2,0,0,0,22,42.364V48h4V42.388C36.788,41.737,38,34.937,38,31.943Zm-22-18c0-3.66,3.114-4.935,6-5.334V19.466C17.938,17.983,16,16.617,16,13.943ZM26,37.384V26.068c4.746,1.628,7,2.991,7,5.875C33,33.335,33,36.886,26,37.384Z" fill="green"></path></g></svg>';
+                        const  person = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48"><title>male</title><g><path fill-rule="evenodd" clip-rule="evenodd" fill="#5A7A84" d="M24,1c-3.3077145,0-6,2.6914291-6,6s2.6922855,6,6,6 c3.3077087,0,6-2.6914291,6-6S27.3077087,1,24,1"></path> <path fill-rule="evenodd" clip-rule="evenodd" fill="#335262" d="M20.0006599,15C16.6865864,15,14,17.6780396,14,21.0033302V31 c0,0.4589996,0.3120003,0.8590012,0.7580004,0.9700012l3.3049994,0.8259964l0.941,13.2870026 C19.0470009,46.6020012,19.4790001,47,20,47h8c0.5209999,0,0.9529991-0.3979988,0.9960003-0.9169998l0.941-13.2870026 l3.3050003-0.8259964C33.6879997,31.8590012,34,31.4589996,34,31v-9.9966698C34,17.6877804,31.3234596,15,27.9993401,15H20.0006599z "></path></g></svg>';
+                        if(data[tag].followers>3000000){
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                        } else if(data[tag].followers>2000000){
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                        }else if(data[tag].followers>1000000){
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                        } else if(data[tag].followers>500000){
+                          showTagInActionCell2.innerHTML += person;
+                          showTagInActionCell2.innerHTML += person;
+                        } else if(data[tag].followers>100000){
+                          showTagInActionCell2.innerHTML += person;
+                        }
+
+
+                        if(data[tag].followers<250000){
+                          showTagInActionCell2.innerHTML += dollar;
+                        }if(data[tag].followers<20000){
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                        } else if(data[tag].followers<10000){
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                        } else if(data[tag].followers<2500){
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                        }else if(data[tag].followers<250){
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                          showTagInActionCell2.innerHTML += dollar;
+                        }
+                        showTagInActionRow2.appendChild(showTagInActionCell2);
+                        return;
+                      });
+                    })
+                  }  else {
+                    const followersToStories = Math.round((Number(data[tag].followers)/Number(data[tag].stories))*100)/100;
+                    const followersToWriters = Math.round((Number(data[tag].followers)/Number(data[tag].writers))*100)/100;
+                    const storiesToWriters = Math.round((Number(data[tag].stories)/Number(data[tag].writers))*100)/100;
+                    function followersCell(followers) {
+                      let final_class = "";
+                      let title = "";
+                      if (followersToStories >=5) {
+                        final_class = "mes-tag excellent";
+                        title = "Excellent 5x or more followers than stories";
+                      } else if (followersToWriters > 50) {
+                        final_class = "mes-tag excellent";
+                        title="Excellent followers to writers above 50. Here people really want more content.";
+                      } else if(followersToWriters >= 20){
+                        final_class = "mes-tag good";
+                        title="Good followers to writers above 20";
+                      } else if(followersToWriters < 1){
+                        final_class = "mes-tag bad"
+                        title="Bad followers to writers bellow 1";
+                      } else if (followersToStories >=4) {
+                        final_class = "mes-tag amazing";
+                        title = "Amazing followers to stories higher than 4x";
+                      } else if(followersToStories>=2.5){
+                        final_class = "mes-tag good";
+                        title = "Good followers to stories higher than 2.5x";
+                      } else if(followersToStories<0.1) {
+                        final_class = "mes-tag bad"
+                        title = "Bad followers to stories less than 0.1x";
+                      } else if(storiesToWriters>50){
+                        final_class = "mes-tag bad";
+                        title="Here is propably one owner of this tag, so it may be hard to beat him.";
+                      } else if(followers<50){
+                        final_class = "mes-tag bad";
+                        title="Followers bellow 50, find better tag";
+                      } else {
+                        final_class = "mes-tag";
+                      }
+
+                      return [final_class, title]
+                    }
+
+                    [className, title] = followersCell(data[tag].followers)
+                    showTagInAction.textContent = getTagName(tag);
+                    showTagInAction.href = `https://medium.com/tag/${tag}`;
+                    showTagInAction.target= "_blank";
+                    showTagInAction.className = className;
+                    showTagInAction.title = title;
+                    showTagInActionCell.appendChild(showTagInAction);
+                    showTagInActionRow.appendChild(showTagInActionCell);
+
+                    const  dollar = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48"><title>currency-dollar-1</title><g><path d="M38,31.943c0-7.013-6.468-9.372-12-11.144V8.487a27.133,27.133,0,0,1,7.126,1.3l2.337.876L37.219,5.98,34.878,5.1A31.706,31.706,0,0,0,26,3.481V0H22V3.584c-6.845.738-11,4.561-11,10.359,0,6.594,5.718,9.072,11,10.819v12.59a33.358,33.358,0,0,1-8.651-1.761L11,34.742l-1.7,4.7,2.351.849A38.2,38.2,0,0,0,22,42.364V48h4V42.388C36.788,41.737,38,34.937,38,31.943Zm-22-18c0-3.66,3.114-4.935,6-5.334V19.466C17.938,17.983,16,16.617,16,13.943ZM26,37.384V26.068c4.746,1.628,7,2.991,7,5.875C33,33.335,33,36.886,26,37.384Z" fill="green"></path></g></svg>';
+                    const  person = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48"><title>male</title><g><path fill-rule="evenodd" clip-rule="evenodd" fill="#5A7A84" d="M24,1c-3.3077145,0-6,2.6914291-6,6s2.6922855,6,6,6 c3.3077087,0,6-2.6914291,6-6S27.3077087,1,24,1"></path> <path fill-rule="evenodd" clip-rule="evenodd" fill="#335262" d="M20.0006599,15C16.6865864,15,14,17.6780396,14,21.0033302V31 c0,0.4589996,0.3120003,0.8590012,0.7580004,0.9700012l3.3049994,0.8259964l0.941,13.2870026 C19.0470009,46.6020012,19.4790001,47,20,47h8c0.5209999,0,0.9529991-0.3979988,0.9960003-0.9169998l0.941-13.2870026 l3.3050003-0.8259964C33.6879997,31.8590012,34,31.4589996,34,31v-9.9966698C34,17.6877804,31.3234596,15,27.9993401,15H20.0006599z "></path></g></svg>';
+                    if(data[tag].followers>3000000){
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                    } else if(data[tag].followers>2000000){
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                    }else if(data[tag].followers>1000000){
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                    } else if(data[tag].followers>500000){
+                      showTagInActionCell2.innerHTML += person;
+                      showTagInActionCell2.innerHTML += person;
+                    } else if(data[tag].followers>100000){
+                      showTagInActionCell2.innerHTML += person;
+                    }
+
+
+                    if(data[tag].followers<250000){
+                      showTagInActionCell2.innerHTML += dollar;
+                    }if(data[tag].followers<20000){
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                    } else if(data[tag].followers<10000){
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                    } else if(data[tag].followers<2500){
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                    }else if(data[tag].followers<250){
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                      showTagInActionCell2.innerHTML += dollar;
+                    }
+                    showTagInActionRow2.appendChild(showTagInActionCell2);
+                    return;
+                  }
+                });
+
+                showTagInActionTable.appendChild(showTagInActionRow)
+                showTagInActionTable.appendChild(showTagInActionRow2)
+                postTitleCellActions.appendChild(showTagInActionTable)
+              })
               let wordsCountCell = row.querySelector('.wordsCount');
               if (!wordsCountCell) {
                 wordsCountCell = document.createElement('td');
@@ -415,20 +623,146 @@ function updateTableRows(data) {
             })
             chrome.storage.local.set({ [post.postId]: { ...post,...data } });
           } else {
+
+            const postTitleCellActions = postTitleCell.querySelector(
+              '.sortableTable-text'
+            );
+            const showTagInActionTable = document.createElement('table');
+            const showTagInActionRow = document.createElement('tr');
+            const showTagInActionRow2 = document.createElement('tr');
             data[post.postId].tags.map((tag, index) => {
-              const postTitleCellActions = postTitleCell.querySelector(
-                '.sortableTable-text'
-              );
-              if(index>0){
-                postTitleCellActions.innerHTML += '<span class="middotDivider"></span>';
-              }
+              const showTagInActionCell = document.createElement('td');
+              const showTagInActionCell2 = document.createElement('td');
               const showTagInAction = document.createElement('a');
-              const name = getTagName(tag)
-              showTagInAction.textContent = name;
-              showTagInAction.href = `https://medium.com/tag/${tag}`;
-              showTagInAction.target= "_blank";
-              showTagInAction.className = 'mes-tag';
-              postTitleCellActions.appendChild(showTagInAction);
+              chrome.storage.local.get([tag]).then(data => {
+                if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 604800000){
+                  loadTagDetails(tag).then(data => {
+                    data.tag = tag;
+                    chrome.storage.local.set({ [tag]: data }).then(() => {
+
+                      if(index>0){
+                        showTagInActionCell.innerHTML += '<td><span class="middotDivider"></span></td>';
+                      }
+                      showTagInAction.textContent = getTagName(tag);
+                      showTagInAction.href = `https://medium.com/tag/${tag}`;
+                      showTagInAction.target= "_blank";
+                      showTagInAction.className = 'mes-tag';
+                      showTagInActionCell.appendChild(showTagInAction);
+                      showTagInActionRow.appendChild(showTagInActionCell);
+                      return;
+                    });
+                  })
+                }  else {
+                  const followersToStories = Math.round((Number(data[tag].followers)/Number(data[tag].stories))*100)/100;
+                  const followersToWriters = Math.round((Number(data[tag].followers)/Number(data[tag].writers))*100)/100;
+                  const storiesToWriters = Math.round((Number(data[tag].stories)/Number(data[tag].writers))*100)/100;
+                  function followersCell(followers) {
+                    let final_class = "";
+                    let title = "";
+                    if (followersToStories >=5) {
+                      final_class = "mes-tag excellent";
+                      title = "Excellent 5x or more followers than stories";
+                    } else if (followersToWriters > 50) {
+                      final_class = "mes-tag excellent";
+                      title="Excellent followers to writers above 50. Here people really want more content.";
+                    } else if(followersToWriters >= 20){
+                      final_class = "mes-tag good";
+                      title="Good followers to writers above 20";
+                    } else if(followersToWriters < 1){
+                      final_class = "mes-tag bad"
+                      title="Bad followers to writers bellow 1";
+                    } else if (followersToStories >=4) {
+                      final_class = "mes-tag amazing";
+                      title = "Amazing followers to stories higher than 4x";
+                    } else if(followersToStories>=2.5){
+                      final_class = "mes-tag good";
+                      title = "Good followers to stories higher than 2.5x";
+                    } else if(followersToStories<0.1) {
+                      final_class = "mes-tag bad"
+                      title = "Bad followers to stories less than 0.1x";
+                    } else if(storiesToWriters>50){
+                      final_class = "mes-tag bad";
+                      title="Here is propably one owner of this tag, so it may be hard to beat him.";
+                    } else if(followers<50){
+                      final_class = "mes-tag bad";
+                      title="Followers bellow 50, find better tag";
+                    } else {
+                      final_class = "mes-tag";
+                    }
+
+                    return [final_class, title]
+                  }
+
+                  // if(index>0){
+                  //   showTagInActionRow.innerHTML += '<td><span class="middotDivider"></span></td>';
+                  // }
+                  [className, title] = followersCell(data[tag].followers)
+                  showTagInAction.textContent = getTagName(tag);
+                  showTagInAction.href = `https://medium.com/tag/${tag}`;
+                  showTagInAction.target= "_blank";
+                  showTagInAction.className = className;
+                  showTagInAction.title = title;
+                  showTagInActionCell.appendChild(showTagInAction);
+                  showTagInActionRow.appendChild(showTagInActionCell);
+
+                  // row 2
+                  // if(index>0){
+                  //   showTagInActionRow2.innerHTML += '<td><span class="middotDivider"></span></td>';
+                  // }
+                  const  dollar = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48"><title>currency-dollar-1</title><g><path d="M38,31.943c0-7.013-6.468-9.372-12-11.144V8.487a27.133,27.133,0,0,1,7.126,1.3l2.337.876L37.219,5.98,34.878,5.1A31.706,31.706,0,0,0,26,3.481V0H22V3.584c-6.845.738-11,4.561-11,10.359,0,6.594,5.718,9.072,11,10.819v12.59a33.358,33.358,0,0,1-8.651-1.761L11,34.742l-1.7,4.7,2.351.849A38.2,38.2,0,0,0,22,42.364V48h4V42.388C36.788,41.737,38,34.937,38,31.943Zm-22-18c0-3.66,3.114-4.935,6-5.334V19.466C17.938,17.983,16,16.617,16,13.943ZM26,37.384V26.068c4.746,1.628,7,2.991,7,5.875C33,33.335,33,36.886,26,37.384Z" fill="green"></path></g></svg>';
+                  const  person = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48"><title>male</title><g><path fill-rule="evenodd" clip-rule="evenodd" fill="#5A7A84" d="M24,1c-3.3077145,0-6,2.6914291-6,6s2.6922855,6,6,6 c3.3077087,0,6-2.6914291,6-6S27.3077087,1,24,1"></path> <path fill-rule="evenodd" clip-rule="evenodd" fill="#335262" d="M20.0006599,15C16.6865864,15,14,17.6780396,14,21.0033302V31 c0,0.4589996,0.3120003,0.8590012,0.7580004,0.9700012l3.3049994,0.8259964l0.941,13.2870026 C19.0470009,46.6020012,19.4790001,47,20,47h8c0.5209999,0,0.9529991-0.3979988,0.9960003-0.9169998l0.941-13.2870026 l3.3050003-0.8259964C33.6879997,31.8590012,34,31.4589996,34,31v-9.9966698C34,17.6877804,31.3234596,15,27.9993401,15H20.0006599z "></path></g></svg>';
+                  if(data[tag].followers>3000000){
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                  } else if(data[tag].followers>2000000){
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                  }else if(data[tag].followers>1000000){
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                  } else if(data[tag].followers>500000){
+                    showTagInActionCell2.innerHTML += person;
+                    showTagInActionCell2.innerHTML += person;
+                  } else if(data[tag].followers>100000){
+                    showTagInActionCell2.innerHTML += person;
+                  }
+
+
+                  if(data[tag].followers<250000){
+                    showTagInActionCell2.innerHTML += dollar;
+                  }if(data[tag].followers<20000){
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                  } else if(data[tag].followers<10000){
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                  } else if(data[tag].followers<2500){
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                  }else if(data[tag].followers<250){
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                    showTagInActionCell2.innerHTML += dollar;
+                  }
+                  showTagInActionRow2.appendChild(showTagInActionCell2);
+                  return;
+                }
+              });
+
+              showTagInActionTable.appendChild(showTagInActionRow)
+              showTagInActionTable.appendChild(showTagInActionRow2)
+              postTitleCellActions.appendChild(showTagInActionTable)
             })
 
             let wordsCountCell = row.querySelector('.wordsCount');
