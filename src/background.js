@@ -31,17 +31,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.tabs.onUpdated.addListener(
   function(tabId, changeInfo, tab) {
-    if (tab.url && tab.status === 'complete' && !tab.url.includes("?") && tab.url.includes("tag")){
-      chrome.tabs.sendMessage( tabId, {
-        message: 'url_changed',
-        rerender: true
-      })
-    } else if (changeInfo.url && !changeInfo.url.includes("?") && tab.changeInfo.includes("tag")){
-      chrome.tabs.sendMessage( tabId, {
-        message: 'url_changed',
-        rerender: false
-      })
+    try{
+      if (tab.url && tab.status === 'complete' && !tab.url.includes("?") && tab.url.includes("tag")){
+        chrome.tabs.sendMessage( tabId, {
+          message: 'url_changed',
+          rerender: true
+        })
+      } else if (changeInfo.url && !changeInfo.url.includes("?") && tab.changeInfo.includes("tag")){
+        chrome.tabs.sendMessage( tabId, {
+          message: 'url_changed',
+          rerender: false
+        })
+      }
+    } catch (e) {
+      console.error(e)
     }
+
   }
 );
 
