@@ -252,7 +252,7 @@ function repaintIgnoredScreenshotElements(canvas) {
 
 function downloadCanvas(canvas) {
   const accountName = accoundData.name.toLowerCase().replace(' ', '-');
-  $downloadLink.download = `medium-enchanted-stats-${accountName}.png`;
+  $downloadLink.download = `medium-Enhanced-stats-${accountName}.png`;
   $downloadLink.href = canvas.toDataURL('image/png');
   $downloadLink.click();
 }
@@ -280,7 +280,7 @@ function exportStats() {
       const encodedUri = encodeURI(`data:text/csv;charset=utf-8,\uFEFF${csv}`);
 
       $downloadLink.href = encodedUri;
-      $downloadLink.download = `medium-enchanted-stats-${accountName}.csv`;
+      $downloadLink.download = `medium-Enhanced-stats-${accountName}.csv`;
       $downloadLink.click();
       return;
   });
