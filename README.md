@@ -23,7 +23,7 @@ Stats enhancements:
 
 Tag enhancement detail:
 
-![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_5.png)
+![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3.png)
 
 
 # Description
