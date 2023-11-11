@@ -21,13 +21,10 @@ How does look like tag enhancement on medium page:
 
 ![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_2.png)
 
-Tag enhancement detail before:
+Tag enhancement detail:
 
-![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3_1.png)
+![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3.png)
 
-Tag enhancement detail after:
-
-![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3_2.png)
 
 # Description
 
