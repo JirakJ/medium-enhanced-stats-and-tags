@@ -9,6 +9,10 @@ More info in [intro article on medium](https://medium.com/@jakubjirak/medium-enh
 
 # Plugin previews
 
+Quick overview:
+
+![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_2.png)
+
 Updated popup:
 
 ![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_4.png)
@@ -16,10 +20,6 @@ Updated popup:
 Stats enhancements:
 
 ![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_1.png)
-
-How does look like tag enhancement on medium page:
-
-![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_2.png)
 
 Tag enhancement detail:
 
