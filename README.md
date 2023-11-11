@@ -7,10 +7,6 @@ This plugin don't take care of user responses and its stats.
 
 More info in [intro article on medium](https://medium.com/@jakubjirak/medium-enhanced-stats-tags-a58da6d0480).
 
-# Original Plugin
-
-Get it at [Chrome Web Store](https://chrome.google.com/webstore/detail/medium-enhanced-stats/jnomnfoenpdinfkpaaigokicgcfkomjo)
-
 # Plugin previews
 
 Updated popup:
@@ -25,9 +21,13 @@ How does look like tag enhancement on medium page:
 
 ![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_2.png)
 
-Tag enhancement detail:
+Tag enhancement detail before:
 
-![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3.png)
+![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3_1.png)
+
+Tag enhancement detail after:
+
+![Medium Enchanted Stats & Tags](https://raw.githubusercontent.com/JirakJ/medium-enhanced-stats-and-tags/master/assets/img_3_2.png)
 
 # Description
 
@@ -81,6 +81,7 @@ Your reach & summary of your articles and without responses stats with a single 
 🤝 Introduction: https://medium.com/p/a58da6d0480
 
 🛠️ CHANGELOG
+v1.1.4 - Update popup
 v1.1.3 - Update images, tags fixed
 v1.1.2 - Performance optimization, layout fixes, disable icons, KO-FI button
 v1.1.1 - Fix showing on tags details
