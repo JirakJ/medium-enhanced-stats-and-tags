@@ -1,25 +1,18 @@
 logTag('start');
 
-function waitForElementToDisplay(selector, callback, checkFrequencyInMs, timeoutInMs) {
-  var startTimeInMs = Date.now();
-  (function loopSearch() {
-    const data = document.querySelector(selector)
-    if (data != null) {
-      callback(data);
-      return;
-    }
-    else {
-      setTimeout(function () {
-        if (timeoutInMs && Date.now() - startTimeInMs > timeoutInMs)
-          return;
-        loopSearch();
-      }, checkFrequencyInMs);
-    }
-  })();
+function formatValue(number = 0) {
+  return number >= 1000000000
+    ? (Math.floor(number / 100000000) / 10).toFixed(1) + 'B'
+    : number >= 1000000
+      ? (Math.floor(number / 100000) / 10).toFixed(1) + 'M'
+      : number >= 1000
+        ? (Math.floor(number / 100) / 10).toFixed(1) + 'K'
+        : number.toFixed(0);
 }
-function renderTagStats(element, results) {
+
+function renderTagStats(results) {
   const tagData = results
-  const container$ = element.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement
+  const container$ = document.querySelectorAll('h2')[0].parentElement.childNodes[1]
 
   const tagStatsContainer$ = document.querySelector(`.mes-tag-stats-extras`);
   if(tagStatsContainer$){
@@ -86,21 +79,21 @@ function renderTagStats(element, results) {
       } else {
         final_class = "value";
       }
-      return `<td class="${final_class}" title="${title}">${followers}</td>`
+      return `<td class="${final_class}" title="${title}">${formatValue(followers)}</td>`
     }
 
     const followersToWriters = Math.round((Number(followers)/Number(writers))*100)/100;
     const storiesToWriters = Math.round((Number(stories)/Number(writers))*100)/100;
-    tagStatsExtrasDOM.className = 'mes-tag-stats-extras';
-    tagStatsExtrasDOM.innerHTML = `
+
+    container$.innerHTML = `
         <table class='spacer'>
             <tr class="entry">
               <td class="title">Followers</td>
               ${followersCell(followers)}
               <td class="title">Writers</td>
-              <td class="value">${writers}</td>
+              <td class="value">${formatValue(writers)}</td>
               <td class="title">Stories</td>
-              <td class="value">${stories}</td>
+              <td class="value">${formatValue(stories)}</td>
             </tr>
             <tr class="entry">
               <td class="title">Followers/Stories</td>
@@ -111,14 +104,13 @@ function renderTagStats(element, results) {
               <td class="value">${storiesToWriters}</td>
             </tr>
         </table>
-        <hr>
-      `;
-    container$.parentElement.appendChild(tagStatsExtrasDOM);
+      `
   }
 }
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     // listen for messages sent from background.js
+    logTag(request.message)
     if (request.message === 'url_changed') {
       function loadTagDetails(tag) {
         return new Promise((resolve) =>
@@ -131,27 +123,26 @@ chrome.runtime.onMessage.addListener(
       try {
         const currentUrl = window.location.toString();
         const tag = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
-        waitForElementToDisplay(`a[href^="/tag/${tag}?source=topic_page"]`,function(element){
-          chrome.storage.local.get([tag]).then(data => {
-            if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 604800000){
-              loadTagDetails(tag).then(data => {
-                data.tag = tag;
-                chrome.storage.local.set({ [tag]: data }).then(() => {
-                  if(request.rerender){
-                    renderTagStats(element, data)
-                  }
-                  return;
-                });
-              })
-            }  else {
-              if(request.rerender){
-                renderTagStats(element, data[tag])
-              }
-              return;
+        logTag(currentUrl)
+        logTag(tag)
+        chrome.storage.local.get([tag]).then(data => {
+          if(data[tag] === undefined || !data[tag].hasOwnProperty("lastUpdate") || (Date.now() - data[tag].lastUpdate) > 604800000){
+            loadTagDetails(tag).then(data => {
+              data.tag = tag;
+              chrome.storage.local.set({ [tag]: data }).then(() => {
+                if(request.rerender){
+                  renderTagStats(data)
+                }
+                return;
+              });
+            })
+          }  else {
+            if(request.rerender){
+              renderTagStats(data[tag])
             }
-          });
-
-        },1000,9000);
+            return;
+          }
+        });
       } catch (error) {
         console.error('Medium Enhanced Stats & Tags [tag]', error);
       }
@@ -162,3 +153,11 @@ chrome.runtime.onMessage.addListener(
 function logTag(...args) {
   console.log('Medium Enhanced Stats & Tags [tags] -', ...args);
 }
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    // Handle the message
+    console.log(request, sender);
+    sendResponse({ response: "Response from background." });
+    return true; // Keep the messaging channel open for sendResponse
+  }
+);

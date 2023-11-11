@@ -1,6 +1,6 @@
 {
   "name": "Medium Enchanted Stats & Tags",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "description": "Medium Enhanced Stats on steroids...little adjustments and focus on improve Tag searching.",
   "manifest_version": 3,
   "author": "Jakub Jirák <jakub@jakubjirak.com>",
@@ -25,15 +25,15 @@
       "all_frames": true,
       "run_at": "document_end",
       "css": [
-        "src/stats/stats-total.css",
         "src/partner/partner.css",
-        "src/tags/tags.css"
+        "src/tags/tags.css",
+        "src/stats/stats-total.css"
       ],
       "js": [
         "src/libs/rxjs.js",
-        "src/stats/stats-total.js",
+        "src/tags/tags.js",
         "src/partner/partner.js",
-        "src/tags/tags.js"
+        "src/stats/stats-total.js"
       ]
     }
   ],

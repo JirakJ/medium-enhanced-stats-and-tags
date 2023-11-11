@@ -31,13 +31,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.tabs.onUpdated.addListener(
   function(tabId, changeInfo, tab) {
+    log("tabId")
+    log(tabId)
+    log("changeInfo")
+    log(changeInfo)
+    log("tab")
+    log(tab)
     try{
       if (tab.url && tab.status === 'complete' && !tab.url.includes("?") && tab.url.includes("tag")){
         chrome.tabs.sendMessage( tabId, {
           message: 'url_changed',
           rerender: true
         })
-      } else if (changeInfo.url && !changeInfo.url.includes("?") && tab.changeInfo.includes("tag")){
+      } else if (changeInfo.url && !changeInfo.url.includes("?") && changeInfo.includes("tag")){
         chrome.tabs.sendMessage( tabId, {
           message: 'url_changed',
           rerender: false
@@ -46,13 +52,13 @@ chrome.tabs.onUpdated.addListener(
     } catch (e) {
       console.error(e)
     }
-
   }
 );
 
 function getTotals(url, payload) {
   let finalUrl = `${API_URL}${url}?limit=50`;
   if (!payload) {
+    log(payload)
     return request(finalUrl).then((res) => getTotals(url, res));
   }
   const { value, paging } = payload;
@@ -66,8 +72,9 @@ function getTotals(url, payload) {
   ) {
     finalUrl += `&to=${paging.next.to}`;
     return request(finalUrl).then((res) => {
-      payload.value = [...payload.value, ...res.value];
+      payload.value = [...new Set([...payload.value, ...res.value])];
       payload.paging = res.paging;
+      log(payload.value)
       return getTotals(url, payload);
     });
   } else {
@@ -101,50 +108,27 @@ function handleGetTotals() {
       };
 
       user.export.articles.map((article, index) => {
-          chrome.storage.local.get([article.postId]).then(data => {
-            if(data[article.postId] === undefined || !data[article.postId].hasOwnProperty("lastUpdate") || (Date.now() - data[article.postId].lastUpdate) > 21600000){
-              fetchPostDetails(article.postId).then(data => {
-                user.export.articles[index].tags = data.tags;
+        chrome.storage.local.get([article.postId]).then(data => {
+          if(data[article.postId] === undefined || !data[article.postId].hasOwnProperty("lastUpdate") || (Date.now() - data[article.postId].lastUpdate) > 21600000){
+            fetchPostDetails(article.postId).then(data => {
+              user.export.articles[index].tags = data.tags;
 
-                console.log(timerToHumanReadableString('fetchPostDetails'));
-                timer('fetch-posts-details');
-                article.lastUpdate = Date.now();
-                chrome.storage.local.set({ [article.postId]: article }).then(() => {
-                  console.debug(`Data for article ${article.postId} has been saved`,article)
-                });
-                return;
-              }).catch(err => console.error(err))
+              console.log(timerToHumanReadableString('fetchPostDetails'));
+              timer('fetch-posts-details');
+              article.lastUpdate = Date.now();
+              chrome.storage.local.set({ [article.postId]: article }).then(() => {
+                console.debug(`Data for article ${article.postId} has been saved`,article)
+              });
               return;
-            } else {
-              article = data[article.postId]
-              return;
-            }
-          });
-        })
-
-      const collections = getCollections(articles);
-      timer('collections');
-      return Promise.all(
-        collections.map((c) => getTotals(`/${c.slug}/stats`))
-      ).then((collectionsStats) => {
-        collections.forEach((c, index) => {
-          chrome.storage.local.get([c.id]).then(data => {
-            if(data[c.id] === undefined || !data[c.id].hasOwnProperty("lastUpdate") || (Date.now() - data[c.id].lastUpdate) > 21600000){
-              c.lastUpdate = Date.now();
-              c.followers = c.metadata.followerCount;
-              c.avatar = c.image.imageId;
-              c.totals = {
-                articles: calculateTotals(collectionsStats[index])
-              };
-              chrome.storage.local.set({ [c.id]: c });
-            } else {
-              c = data[c.id]
-            }
-          });
+            }).catch(err => console.error(err))
+            return;
+          } else {
+            article = data[article.postId]
+            return;
+          }
         });
-        console.log(timerToHumanReadableString('collections'));
-        return { user, collections };
-      });
+      })
+      return { user };
     });
 }
 
@@ -159,6 +143,7 @@ function handleGetPostStats(postId) {
 function handleGetPostStatsDetails(postId) {
   timer('post-stats-details');
   return fetchPostDetails(postId).then(data => {
+    log(data);
     return data;
   });
 }
@@ -253,11 +238,11 @@ function fetchTagStats(tag) {
       }
     }`,
   },
-  {
-    variables: {
-      tagSlug: tag,
-    },
-    query: `query TagSlug($tagSlug: String) {
+    {
+      variables: {
+        tagSlug: tag,
+      },
+      query: `query TagSlug($tagSlug: String) {
       tagFromSlug(tagSlug: $tagSlug) {
       ...TopicHeaderData
       }
@@ -268,19 +253,19 @@ function fetchTagStats(tag) {
       followerCount
       postCount
     }`,
-  },
-  {
-    variables: {
-      tagSlug: tag,
     },
-    query: `query RelatedTagsQuery($tagSlug: String!) {
+    {
+      variables: {
+        tagSlug: tag,
+      },
+      query: `query RelatedTagsQuery($tagSlug: String!) {
   relatedTags(tagSlug: $tagSlug) {
     ... on Tag {
       id
       }
     }
   }`,
-  }
+    }
   ]).then((res) => {
     const relatedTags = []
     res[2].data.relatedTags.map(tag => relatedTags.push(tag.id))
@@ -345,17 +330,17 @@ fragment PostContextData on Post {
     const tags = []
     res.data.post.tags.map(tag => tags.push(tag.id))
     const res_obj = {
-        date: res.data.post.firstPublishedAt,
-        id: res.data.post.id,
-        creator: res.data.post.creator.name,
-        title: res.data.post.title,
-        tags: tags,
-        clapCount: res.data.post.clapCount,
-        comments: res.data.post.postResponses.count,
-        readingTime: res.data.post.readingTime,
-        calculatedWordCount: Number(res.data.post.readingTime)*280,
-        mediumUrl: res.data.post.mediumUrl,
-        canonicalUrl: res.data.post.canonicalUrl,
+      date: res.data.post.firstPublishedAt,
+      id: res.data.post.id,
+      creator: res.data.post.creator.name,
+      title: res.data.post.title,
+      tags: tags,
+      clapCount: res.data.post.clapCount,
+      comments: res.data.post.postResponses.count,
+      readingTime: res.data.post.readingTime,
+      calculatedWordCount: Number(res.data.post.readingTime)*280,
+      mediumUrl: res.data.post.mediumUrl,
+      canonicalUrl: res.data.post.canonicalUrl,
     }
     return res_obj
   });
@@ -387,6 +372,7 @@ function requestGraphQl(query) {
 
 function getUser(data) {
   const users = (data && data.references && data.references.User) || {};
+  log(Object.values(users))
   return Object.values(users)[0] || {};
 }
 
@@ -454,4 +440,8 @@ function timer(id) {
 
 function timerToHumanReadableString(timerName) {
   return `${timerName}: ${(timer(timerName) || 0).toFixed(2)}ms`;
+}
+
+function log(...args) {
+  console.log('Medium Enhanced Stats & Tags [background] -', ...args);
 }

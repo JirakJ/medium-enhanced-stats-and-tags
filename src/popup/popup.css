@@ -152,6 +152,15 @@ a.trajan:hover {
     color: #019b72;
 }
 
+a.jirak {
+    color: #03a87c;
+    text-decoration: none;
+}
+
+a.jirak:hover {
+    color: #019b72;
+}
+
 .actions {
     display: flex;
     align-items: center;
