@@ -39,10 +39,14 @@ chrome.tabs.onUpdated.addListener(
     log(tab)
     try{
       if (tab.url && tab.status === 'complete' && !tab.url.includes("?") && tab.url.includes("tag")){
-        chrome.tabs.sendMessage( tabId, {
-          message: 'url_changed',
-          rerender: true
-        })
+        let data= tab.url.split("/")
+        log(data[data.length-2])
+        if(data[data.length-2] === "tag"){
+          chrome.tabs.sendMessage( tabId, {
+            message: 'url_changed',
+            rerender: true
+          })
+        }
       } else if (changeInfo.url && !changeInfo.url.includes("?") && changeInfo.includes("tag")){
         chrome.tabs.sendMessage( tabId, {
           message: 'url_changed',

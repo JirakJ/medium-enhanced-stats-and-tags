@@ -583,11 +583,11 @@ function updateTableRows(data) {
   // fansHeadCell.title = 'Fans, Claps and Claps per Fan';
 
   let tableHeadRow = document.querySelector('table thead tr');
-
+  tableHeadRow
   let viewsCountHeadCell = tableHeadRow.querySelector('.viewsCount');
   if (!viewsCountHeadCell) {
     viewsCountHeadCell = document.createElement('th');
-    viewsCountHeadCell.className = 'sortableTable-header disabled viewsCount';
+    viewsCountHeadCell.className = 'sortableTable-header viewsCount';
     viewsCountHeadCell.innerHTML = `<button class="button button--chromeless u-baseColor--buttonNormal js-views">Views</button>`;
     tableHeadRow.appendChild(viewsCountHeadCell);
   }
@@ -595,7 +595,7 @@ function updateTableRows(data) {
   let readsCountHeadCell = tableHeadRow.querySelector('.readsCount');
   if (!readsCountHeadCell) {
     readsCountHeadCell = document.createElement('th');
-    readsCountHeadCell.className = 'sortableTable-header disabled readsCount';
+    readsCountHeadCell.className = 'sortableTable-header readsCount';
     readsCountHeadCell.innerHTML = `<button class="button button--chromeless u-baseColor--buttonNormal js-views">Member Reads</button>`;
     tableHeadRow.appendChild(readsCountHeadCell);
   }
@@ -603,7 +603,7 @@ function updateTableRows(data) {
   let readRatioCountHeadCell = tableHeadRow.querySelector('.readRatioCount');
   if (!readRatioCountHeadCell) {
     readRatioCountHeadCell = document.createElement('th');
-    readRatioCountHeadCell.className = 'sortableTable-header disabled readRatioCount';
+    readRatioCountHeadCell.className = 'sortableTable-header readRatioCount';
     readRatioCountHeadCell.innerHTML = `<button class="button button--chromeless u-baseColor--buttonNormal js-views">Members<br/>Read ratio</button>`;
     tableHeadRow.appendChild(readRatioCountHeadCell);
   }
@@ -671,10 +671,11 @@ function scrollToBarChart() {
 }
 
 function isNewPage() {
-  return urlIncludes('stats') && !document.querySelector('table tfoot');
+  return urlIncludes('me/stats') && !urlIncludes('stats/stories') && !document.querySelector('table tfoot');
 }
 
 function urlIncludes(text) {
+  log(window.location.pathname);
   return window.location.pathname.includes(text);
 }
 

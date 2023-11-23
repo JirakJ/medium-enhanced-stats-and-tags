@@ -78,6 +78,7 @@ Your reach & summary of your articles and without responses stats with a single 
 🤝 Introduction: https://medium.com/p/a58da6d0480
 
 🛠️ CHANGELOG
+v1.1.5 - Bug fixing
 v1.1.4 - Update popup
 v1.1.3 - Update images, tags fixed
 v1.1.2 - Performance optimization, layout fixes, disable icons, KO-FI button
