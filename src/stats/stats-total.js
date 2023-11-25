@@ -671,7 +671,7 @@ function scrollToBarChart() {
 }
 
 function isNewPage() {
-  return urlIncludes('me/stats') && !urlIncludes('stats/stories') && !document.querySelector('table tfoot');
+  return urlIncludes('stats') && !urlIncludes('stats/stories') && !urlIncludes('stats/overview') && !document.querySelector('table tfoot');
 }
 
 function urlIncludes(text) {

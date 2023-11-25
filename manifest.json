@@ -1,6 +1,6 @@
 {
   "name": "Medium Enchanted Stats & Tags",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Medium Enhanced Stats on steroids...little adjustments and focus on improve Tag searching.",
   "manifest_version": 3,
   "author": "Jakub Jirák <jakub@jakubjirak.com>",
@@ -20,8 +20,7 @@
     {
       "matches": [
         "https://*.medium.com/*",
-        "https://medium.com/me/stats",
-        "https://medium.com/me/partner/*"
+        "https://medium.com/*"
       ],
       "all_frames": true,
       "run_at": "document_end",
